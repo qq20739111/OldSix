@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>六子冲棋AI</title>
+	<link rel="stylesheet" type="text/css" href="oldsix.css">
+ 	<script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+ 	<script type="text/javascript" src="OldSix.js"></script>
+</head>
+<body>
+	<div class="oldsix" id="oldsix">
+		<div class="header">六子冲棋 by LeiLei</div>
+		<div class="board" id="board">
+			<table class="board_table"  id="board-table"><!-- 棋盘 -->
+				<tr>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+			</table>
+			<table class="board_piece" id="board-piece"><!-- 棋盘上的棋子 -->
+				<tr>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+				</tr>
+				<tr>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+				</tr>
+				<tr>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+				</tr>
+				<tr>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+					<td><i></i></td>
+				</tr>
+			</table>
+		</div>
+		<div class="footer">&copy; 2017 hi@leilei.name</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+	//创建六子冲棋对象
+	var oldsix = new OldSix();
+	oldsix.setIQLevel(8); //设置电脑智力，可选2-8级，默认为3；
+
+	//a.显示当前棋盘（刷新）
+	var showBoard = function(){
+		var i, j, piece;
+		var location;
+		var boardPiece = "";
+
+		for(i = 0; i < 4; i++){
+			boardPiece += "<tr>"
+			for(j = 0; j < 4; j++){
+				boardPiece += "<td>";
+      			location = oldsix.getLocationFromXY(j, i); //取得数组下标
+				piece = oldsix.board[location];
+				if(piece == oldsix.piece["leaf"]){
+					boardPiece += "<i class='leaf' " + "x='" + j + "' y='" + i + "'></i>"; //白子-树叶
+				}else if(piece == oldsix.piece["stone"]){
+					boardPiece += "<i class='stone' " + "x='" + j + "' y='" + i + "'></i>"; //黑子-石头
+				}else if(piece == oldsix.piece["nopiece"]){
+					boardPiece += "<i class='nopiece' " + "x='" + j + "' y='" + i + "'></i>";
+				}else{
+				
+				}
+				boardPiece += "</td>";
+			}
+			boardPiece += "</tr>"
+		}
+		$("#board-piece").html(boardPiece);
+		//重新绑定点击操作
+		bindClick();
+	};
+
+	//b.选择的棋子
+	var selectedPiece = {
+		"x": 0,
+		"y": 0,
+	};
+
+	//c.电脑走的棋
+	var computerMove = {};
+	
+	//d.棋子点击操作
+	var bindClick = function(){
+
+		$("i").click(function(){
+			var fromX, fromY, toX, toY;
+			var cFromX, cFromY, cToX, cToY;
+
+			//点击棋子
+			if($(this).hasClass(oldsix.currentPlayer)){
+				selectedPiece.x = +(fromX = $(this).attr("x"));
+				selectedPiece.y = +(fromY = $(this).attr("y"));
+				$("i").removeClass("selected");
+				$(this).addClass("selected");
+			}
+			
+			//点击空白
+			if($(this).hasClass("nopiece")){
+				toX = +($(this).attr("x"));
+				toY = +($(this).attr("y"));
+
+				//走棋
+				if(oldsix.movePiece(+selectedPiece.x, +selectedPiece.y, +toX, +toY)){
+					
+					showBoard();
+
+					if(oldsix.isCurrentPlayerDie()){
+						alert("你有点厉害哟！居然赢了！");
+						return;
+					}
+
+					//延时-等页面刷新再思考
+					setTimeout(function(){
+
+						computerMove = oldsix.computerThink();
+						showBoard();
+
+						//定位电脑走的棋子
+						cFromX = "[x='" + computerMove.coordinate.from.x + "']";
+						cFromY = "[y='" + computerMove.coordinate.from.y + "']";
+						cToX = "[x='" + computerMove.coordinate.to.x + "']";
+						cToY = "[y='" + computerMove.coordinate.to.y + "']";
+						$(cFromX + cFromY).addClass("c_from");
+						$(cToX + cToY).addClass("c_to");
+
+						if(oldsix.isCurrentPlayerDie()){
+							alert("你挂了！不服？刷新网页再来！");
+							return;
+						}
+
+					},10);
+				
+				}
+			}
+		});
+
+	}
+
+	//e.开局显示棋盘
+	showBoard();
+
+</script>
+</html>
